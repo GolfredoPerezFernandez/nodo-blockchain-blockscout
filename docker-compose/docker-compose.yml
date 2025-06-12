@@ -1,10 +1,12 @@
-version: '3.9'
+version: '3.8'
 
 services:
   redis-db:
     extends:
       file: ./services/redis.yml
       service: redis-db
+    networks:
+      - default
 
   db-init:
     extends:
@@ -18,11 +20,14 @@ services:
     extends:
       file: ./services/db.yml
       service: db
+    networks:
+      - default
 
   backend:
     depends_on:
       - db
       - redis-db
+      - ganache
     extends:
       file: ./services/backend.yml
       service: backend
@@ -34,10 +39,13 @@ services:
     links:
       - db:database
     environment:
-        ETHEREUM_JSONRPC_HTTP_URL: http://host.docker.internal:8545/
-        ETHEREUM_JSONRPC_TRACE_URL: http://host.docker.internal:8545/
-        ETHEREUM_JSONRPC_WS_URL: ws://host.docker.internal:8545/
-        CHAIN_ID: '1337'
+      ETHEREUM_JSONRPC_HTTP_URL: http://192.168.50.59:8545
+      ETHEREUM_JSONRPC_TRACE_URL: http://192.168.50.59:8545/
+      ETHEREUM_JSONRPC_WS_URL: ws://192.168.50.59:8545
+      CHAIN_ID: '1337'
+      INDEXER_INTERNAL_TRANSACTIONS_TRACER_TYPE: noop
+    networks:
+      - default
 
   nft_media_handler:
     depends_on:
@@ -93,9 +101,16 @@ services:
     depends_on:
       - db
       - backend
+      - ganache
     extends:
       file: ./services/user-ops-indexer.yml
       service: user-ops-indexer
+    environment:
+      ETHEREUM_JSONRPC_HTTP_URL: http://192.168.50.59:8545
+      ETHEREUM_JSONRPC_WS_URL: ws://192.168.50.59:8545
+      USER_OPS_INDEXER__INDEXER__RPC_URL: ws://192.168.50.59:8545
+    networks:
+      - default
 
   proxy:
     depends_on:
@@ -105,3 +120,15 @@ services:
     extends:
       file: ./services/nginx.yml
       service: proxy
+
+  ganache:
+    image: trufflesuite/ganache:latest
+    ports:
+      - "8545:8545"
+    networks:
+      - default
+
+networks:
+  default:
+    name: docker-compose_default
+    driver: bridge

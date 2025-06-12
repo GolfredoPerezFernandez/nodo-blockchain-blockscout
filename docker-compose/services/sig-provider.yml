@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   sig-provider:
     image: ghcr.io/blockscout/sig-provider:${SIG_PROVIDER_DOCKER_TAG:-latest}

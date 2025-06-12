@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   smart-contract-verifier:
     image: ghcr.io/blockscout/smart-contract-verifier:${SMART_CONTRACT_VERIFIER_DOCKER_TAG:-latest}
